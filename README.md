@@ -21,3 +21,15 @@ A simple and precise digital clock for beginners to build with no resistors, pot
 - The right push button sets the minutes of the digital clock.
 - The LCD displays the output of the clock in hrs:mins:secs
 - The piezo alerts you when the alarm goes off.
+- Will greet you with "Good Afternoon", "Good Morning", or "Good Evening" depending on the time of day.
+
+**Piezo Alarm Demo**
+
+https://user-images.githubusercontent.com/68084112/118045703-457f8600-b346-11eb-85ff-ea02a26911cd.mov
+
+**Clock Setting Demo**
+
+https://user-images.githubusercontent.com/68084112/118046022-bb83ed00-b346-11eb-813a-fb6d738d0e85.mov
+
+
+
