@@ -1,0 +1,237 @@
+#include "LiquidCrystal.h"
+#include "Wire.h"
+#define buzz 13
+
+// This defines the LCD wiring to the DIGITALpins
+
+const int rs = 2, en = 3, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// Digital LCD Constrast setting
+int cs=9;// pin 9 for contrast PWM
+const int contrast = 50;// default contrast
+
+// initial Time display is 12:59:45 PM
+int h=12;
+int m=0;
+int s=0;
+int flag=1; //PM
+
+// Time Set Buttons
+int button1;
+int button2;
+
+// Pins definition for Time Set Buttons
+int hs=0;// pin 0 for Hours Setting
+int ms=1;// pin 1 for Minutes Setting
+
+// Backlight Time Out 
+const int Time_light=5000;
+int bl_TO=Time_light;// Backlight Time-Out
+int bl=10; // Backlight pin
+const int backlight=120; // no more then 7mA !!!
+
+// For accurate Time reading, use Arduino Real Time Clock and not just delay()
+static uint32_t last_time, now = 0; // RTC
+
+int brightness = 255;
+
+void setup()
+{
+  lcd.begin(16,2);
+  pinMode(hs,INPUT_PULLUP);// avoid external Pullup resistors for Button 1
+  pinMode(ms,INPUT_PULLUP);// and Button 2
+  analogWrite(cs,contrast);// Adjust Contrast VO
+  analogWrite(bl,backlight);// Turn on Backlight
+  now=millis(); // read RTC initial value  
+  pinMode(buzz, OUTPUT);
+  brightness = 100;
+}
+
+ // read the input on analog pin
+
+  //if(analogValue > threshold){
+  //  digitalWrite(buzz, HIGH);
+ // }// turn on Piezo Buzzer
+  //else{
+  //  digitalWrite(buzz, LOW);  // turn off Piezo Buzzer
+ // }
+
+void Buzzer(){
+  digitalWrite(buzz, HIGH);
+  delay(10);
+  digitalWrite(buzz, LOW);
+  delay(10);
+  }
+  
+void loop()
+{ 
+  lcd.begin(16,2);// every second
+// Update LCD Display
+// Print TIME in Hour, Min, Sec + AM/PM
+ lcd.setCursor(0,0);
+ lcd.print("Time ");
+ if(h<10)lcd.print("0");// always 2 digits
+ lcd.print(h);
+ lcd.print(":");
+ if(m<10)lcd.print("0");
+ lcd.print(m);
+ lcd.print(":");
+ if(s<10)lcd.print("0");
+ lcd.print(s);
+
+ if(flag==0) lcd.print(" AM");
+ if(flag==1) lcd.print(" PM");
+
+  
+ if((h<=12 && m<=59 && s<=59 && flag==0)){
+ 
+ lcd.setCursor(0,1);// for Line 2
+ lcd.print("Good Morning!");
+ }
+ else if((h>=1 && h<=6) && m<=59 && s<=59 && flag==1){
+  lcd.setCursor(0,1);// for Line 2
+  lcd.print("Good Afternoon!");
+  }
+  else{
+ lcd.setCursor(0,1);// for Line 2
+ lcd.print("Good Evening!");
+ }
+
+  
+for(int count=0; count <= 1; count++){
+if(h==12 && m==0 && (s>=5 && s<=10) && flag==1){
+  Buzzer();
+  Buzzer();
+  tone(buzz, 31);
+  lcd.setCursor(0,1);
+  lcd.print("               ");
+  delay(100);
+  lcd.setCursor(0,1);
+  lcd.print("Time's Up!     ");
+  Buzzer();
+  Buzzer();
+  tone(buzz, 31);
+  delay(100);
+  noTone(buzz);
+  }
+}
+
+for ( int i=0 ;i<5 ;i++)// make 5 time 200ms loop, for faster Button response
+{
+
+  while ((now-last_time)<200) //delay200ms
+  { 
+    now=millis();
+  }
+ // inner 200ms loop
+ last_time=now; // prepare for next loop 
+
+ // read Setting Buttons
+ button1=digitalRead(hs);// Read Buttons
+ button2=digitalRead(ms);
+
+ //Backlight time out 
+ bl_TO--;
+ if(bl_TO==0)
+ {
+  analogWrite(bl,0);// Backlight OFF
+  bl_TO++;
+ }
+ 
+ // Hit any to activate Backlight 
+ if(  ((button1==0)|(button2==0)) & (bl_TO==1)  )
+ {
+  bl_TO=Time_light;
+  analogWrite(bl,backlight);
+  // wait until Button released
+  while ((button1==0)|(button2==0))
+  {
+   button1=digitalRead(hs);// Read Buttons
+   button2=digitalRead(ms);
+  }
+ }
+ else
+ // Process Button 1 or Button 2 when hit while Backlight on 
+ {
+  if(button1==0){
+   h=h+1;
+   bl_TO=Time_light;
+   analogWrite(bl,backlight);
+  }
+
+ if(button2==0){
+  s=0;
+  m=m+1;
+  bl_TO=Time_light;
+  analogWrite(bl,backlight);
+  }
+
+/* ---- manage seconds, minutes, hours am/pm overflow ----*/
+ if(s==60){
+  s=0;
+  m=m+1;
+ }
+ if(m==60)
+ {
+  m=0;
+  h=h+1;
+ }
+ if(h==13)
+ {
+  h=1;
+  flag=flag+1;
+  if(flag==2)flag=0;
+ }
+
+
+ if((button1==0)|(button2==0))// Update display if time set button pressed
+ {
+  // Update LCD Display
+  // Print TIME in Hour, Min, Sec + AM/PM
+  lcd.setCursor(0,0);
+  lcd.print("Time ");
+  if(h<10)lcd.print("0");// always 2 digits
+  lcd.print(h);
+  lcd.print(":");
+  if(m<10)lcd.print("0");
+  lcd.print(m);
+  lcd.print(":");
+  if(s<10)lcd.print("0");
+  lcd.print(s);
+
+  if(flag==0) lcd.print(" AM");
+  if(flag==1) lcd.print(" PM");
+ 
+  //lcd.setCursor(0,1);// for Line 2
+  //lcd.print("Precision clock");
+  
+ }
+
+
+ } // end if else
+}// end for
+
+// outer 1000ms loop
+
+ s=s+1; //increment sec. counting
+    
+    
+// ---- manage seconds, minutes, hours am/pm overflow ----
+ if(s==60){
+  s=0;
+  m=m+1;
+ }
+ if(m==60)
+ {
+  m=0;
+  h=h+1;
+ }
+ if(h==13)
+ {
+  h=1;
+  flag=flag+1;
+  if(flag==2)flag=0;
+ } 
+// Loop end
+}
