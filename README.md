@@ -12,6 +12,7 @@
 
 A simple and precise digital clock for beginners to build with no resistors, potentiometer, or RTC required. It is not a complete alarm clock but you can set a certain time within the code itself and the piezo will set off.
 
+![arduino clock](https://user-images.githubusercontent.com/68084112/118043581-8fb33800-b343-11eb-9824-da9f8f355b1e.png)
 
 
 **How it Works**
