@@ -1,4 +1,4 @@
-# Simple-Arduino-Clock
+# Simple-Digital-Clock
 
 **Components:**
 - 1x Arduino Uno
